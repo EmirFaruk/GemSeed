@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Linq;
@@ -17,6 +18,9 @@ public class SaleController : MonoBehaviour
     private int saleOrder;
     
     private float money;
+
+    private Transform target;
+    private Animator animator;
     #endregion
 
     #region Unity Event Functions
@@ -26,12 +30,26 @@ public class SaleController : MonoBehaviour
         
         money = PlayerPrefs.GetFloat("money");
         OnMoneyUpdate?.Invoke(money);
+
+        target = GameObject.FindWithTag(TagManager.Player).transform;
+        animator = GetComponent<Animator>();
     }
 
     private void Update()
     {
-        if (PlayerTrigger.atSalePoint) StartCoroutine(Selling());
-        else StopCoroutine(Selling());
+        if (PlayerTrigger.atSalePoint)
+        {
+            StartCoroutine(Selling());
+            animator.SetBool("Selling", true);
+        }
+        else
+        {
+            StopCoroutine(Selling());
+            animator.SetBool("Selling", false);
+            Vector3 direction = target.position;
+            direction.y = transform.position.y * 2;
+            transform.DOLookAt(direction, 1f).SetEase(Ease.OutQuad);
+        }
     }
 
     private void OnEnable()

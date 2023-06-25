@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/GemSeed/Scenes/SOTest.unity
-    guid: 8dfd3fd1fe6034f43af4d967e5b35066
+    path: Assets/GemSeed/Scenes/GameplayScene.unity
+    guid: f148425dffd7877409b8993337a24c29
   m_configObjects:
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 62181159054a43b498832d8470008578,
       type: 2}

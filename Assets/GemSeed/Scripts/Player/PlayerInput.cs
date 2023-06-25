@@ -1,83 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class PlayerInput : MonoBehaviour
 {
-    public Vector3 inputVector { get; set; }
-    public bool inputOpen { get; set; }
+    #region Variables
 
-    //Mobile Input
-    public bool mobileInput;
-    Touch touch;
-    Vector3 touchDown;
-    Vector3 touchUp;
+    //Vectors
+    public Vector3 inputVector { get; private set; }
+    //Mobile
+    private Touch touch;
+    private Vector3 touchDown;
+    private Vector3 touchUp;
 
-    //Geçici
-    public float pcSpeed, mobileSpeed;
-    public float speed { get; private set; }
-    [SerializeField] float smoothVelocity;
-    [SerializeField] float rotationTime = .1f;
+    public enum InputMode { Mobile, Pc }
+    public InputMode inputMode;
 
-    private void Awake()
-    {
-        speed = mobileInput ? mobileSpeed : pcSpeed;
-    }
+    #endregion
 
-    public PlayerInput()
-    {
-        inputOpen = true;
-    }
 
     private void Update()
     {        
-        if (mobileInput)
-        {
+        if (inputMode == InputMode.Mobile)
+        { 
             if (Input.touchCount > 0)
-            {
-                print("MOBILE INPUT");
-
+            {                
                 touch = Input.GetTouch(0);
 
-                if (touch.phase == TouchPhase.Began) // down
+                switch (touch.phase)
                 {
-                    touchDown = touch.position;
-                    touchUp = touch.position; //silinmeli mi
+                    case TouchPhase.Began:
+                        touchUp = touchDown = touch.position;
+                        break;
+                    case TouchPhase.Moved:
+                        touchDown = touch.position;
+                        break;                
+                    case TouchPhase.Ended:
+                        touchUp = touchDown = touch.position;
+                        break;                    
+                    default:
+                        break;
                 }
-                if (touch.phase == TouchPhase.Ended) // down
-                {                    
-                    touchUp = touch.position;
-                    //animator.SetBool(GameController.Parameters.moving, false);
-                }
-                else
-                {
-                    touchDown = touch.position;
-                    SetTransform((touchDown - touchUp).normalized, true, true);
-                    //animator.SetBool(GameController.Parameters.moving, true);
-                }
+
+                Vector2 moveDirection = touchDown - touchUp;
+                inputVector = new Vector3(moveDirection.x, 0, moveDirection.y);
             }
         }
-        else
-        {
+        else 
             inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            SetTransform(new Vector3(inputVector.x, inputVector.z, 0).normalized, true, true);
-        }
-    }
-
-    void SetTransform(Vector3 movement, bool setRotation, bool setPosition)
-    {
-        if (setRotation)
-        {
-            float targetAngle = Mathf.Atan2(movement.x, movement.y) * Mathf.Rad2Deg;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref smoothVelocity, rotationTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-        }
-
-        if (setPosition)
-        {
-            
-            transform.position += Vector3.forward * movement.y * (mobileInput ? mobileSpeed : pcSpeed) * Time.deltaTime;
-            transform.position += Vector3.right * movement.x * (mobileInput ? mobileSpeed : pcSpeed) * Time.deltaTime;
-        }
     }
 }
+
+/**/

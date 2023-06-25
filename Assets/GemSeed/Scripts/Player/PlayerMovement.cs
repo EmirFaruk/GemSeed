@@ -5,52 +5,48 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5;
-    
-    PlayerInput playerInput;
-    Animator animator;
+    #region Variables
+    [SerializeField] private float pcSpeed, mobileSpeed;
+    [SerializeField] private float rotationDuration;
+    private float smoothVelocity;
+
+    //Character Controller Component
+    private CharacterController controller;
+    private float speed = 5f;    
+
+    //Input
+    private PlayerInput playerInput;
+
+    //Animator Component
+    private Animator animator;
+    #endregion
+
 
     private void Awake()
     {
+        //Input
         playerInput = GetComponent<PlayerInput>();
+        //Character Controller Component
+        controller = GetComponent<CharacterController>();
+        //Animator Component
         animator = GetComponentInChildren<Animator>();
+        //Speed
+        speed = playerInput.inputMode == PlayerInput.InputMode.Mobile ? mobileSpeed : pcSpeed;
     }
 
     private void FixedUpdate()
     {
-        transform.position += Vector3.forward * playerInput.inputVector.z * playerInput.speed * Time.deltaTime;
-        transform.position += Vector3.right * playerInput.inputVector.x * playerInput.speed * Time.deltaTime;
+        Vector3 moveDirection = playerInput.inputVector.normalized;
 
-        animator.SetBool("walking", playerInput.inputVector.magnitude > 0);        
-    }
+        animator.SetBool("walking", playerInput.inputVector.magnitude > 0);
+        controller.Move(moveDirection * speed * Time.deltaTime);
 
-
-    [SerializeField] CameraBounds cameraBounds;
-    [Serializable] struct CameraBounds
-    {
-        public float horizontalMin, horizontalMax, verticalMin, verticalMax;
-    }
-
-    /*void RunningControl()
-    {
-        if (playerInput.inputVector.magnitude > 0)
+        if (moveDirection != Vector3.zero)
         {
-            if (!animator.GetBool("running"))
-            {
-                this.Wait(1f, () =>
-                {
-                    if (playerInput.inputVector.magnitude > .6f)
-                    {
-                        //animator.SetBool("walking", false);
-                        animator.SetBool("running", true);
-                    }
-                });
-            }
-            else
-            {
-                animator.SetBool("running", playerInput.inputVector.magnitude > .6f);
-                animator.SetBool("walking", playerInput.inputVector.magnitude < .6f);
-            }
-        }        
-    }*/
+            float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref smoothVelocity, rotationDuration);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+        }
+    }
+
 }
